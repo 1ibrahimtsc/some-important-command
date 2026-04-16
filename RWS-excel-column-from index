@@ -1,10 +1,14 @@
+' Press: Alt + F11
+' Insert → Module
+' press F5
+
 Sub CleanColumn()
 
     Dim cell As Range
     Dim rng As Range
     
     ' Column select (A column example)
-    Set rng = Range("A2:A1000") ' change as needed
+    Set rng = Range("A2:A40000") ' change as needed
     
     For Each cell In rng
         If Not IsEmpty(cell.Value) Then
