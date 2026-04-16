@@ -1,0 +1,45 @@
+Sub CleanColumn()
+
+    Dim cell As Range
+    Dim rng As Range
+    
+    ' Column select (A column example)
+    Set rng = Range("A2:A1000") ' change as needed
+    
+    For Each cell In rng
+        If Not IsEmpty(cell.Value) Then
+            
+            ' Convert to text
+            cell.NumberFormat = "@"
+            
+            ' Remove unwanted characters
+            cell.Value = cell.Value
+            cell.Value = Replace(cell.Value, "-", "")
+            cell.Value = Replace(cell.Value, ".", "")
+            
+            ' Remove letters (A-Z, a-z)
+            cell.Value = RemoveLetters(cell.Value)
+            
+        End If
+    Next cell
+
+End Sub
+
+Function RemoveLetters(txt As String) As String
+    Dim i As Integer
+    Dim result As String
+    Dim ch As String
+    
+    result = ""
+    
+    For i = 1 To Len(txt)
+        ch = Mid(txt, i, 1)
+        
+        ' Keep only numbers
+        If ch Like "[0-9]" Then
+            result = result & ch
+        End If
+    Next i
+    
+    RemoveLetters = result
+End Function
