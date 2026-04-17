@@ -1,0 +1,168 @@
+Sub CleanAndFormatData()
+
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, "B").End(xlUp).Row
+
+    Dim i As Long
+    Dim bVal As String, cVal As String, eVal As String, gVal As String, hVal As String, iVal As String, payCode As String
+    Dim fullText As String
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+
+    For i = 2 To lastRow
+        ' ==== Column B: Extract Name ====
+        fullText = ws.Cells(i, "B").Value
+        ws.Cells(i, "B").Value = Trim(Split(fullText, ",")(0))
+
+        ' ===== Column C: Trim =====
+        cVal = Trim(ws.Cells(i, "C").Value)
+        
+        ws.Cells(i, "C").Value = Trim(Split(cVal, ",")(0))
+
+        ' ===== Column D: Gender detection =====
+        If IsFemaleName(Trim(Split(fullText, ",")(0))) Then
+            ws.Cells(i, "D").Value = "female"
+        Else
+            ws.Cells(i, "D").Value = "male"
+        End If
+
+        ' ===== Column E: Extract Date of Birth =====
+        eVal = ws.Cells(i, "E").Value
+        ws.Cells(i, "E").Value = ExtractDate(eVal)
+        ws.Cells(i, "E").NumberFormat = "dd/mm/yyyy"
+        ws.Cells(i, "E").HorizontalAlignment = xlRight
+
+
+        ' ===== Column F: Status OK =====
+        ws.Cells(i, "F").Value = "ok"
+
+        
+       ' ==== Column G: Extract MPO Code (letters+digits only) ====
+gVal = ws.Cells(i, "G").Value
+ws.Cells(i, "G").Value = ExtractMPOCode(gVal)
+
+
+        ' ===== Column H: Bank Account, Text format =====
+        hVal = ExtractAccountNumber(ws.Cells(i, "H").Value)
+        ws.Cells(i, "H").NumberFormat = "@"
+        ws.Cells(i, "H").Value = hVal
+
+        ' ===== Column I: Extract Pay-code only =====
+        iVal = ws.Cells(i, "I").Value
+        payCode = ExtractPayCode(iVal)
+
+        If payCode = "" Then
+            ws.Cells(i, "I").Value = ""
+        Else
+            ws.Cells(i, "I").Value = Val(payCode)
+        End If
+
+        ' ===== Column J: Blank =====
+        ws.Cells(i, "J").Value = ""
+
+        ' ===== Column K: Category =====
+        If IsNumeric(payCode) Then
+            If Val(payCode) >= 5 And Val(payCode) <= 14 Then
+                ws.Cells(i, "K").Value = "Teacher"
+            ElseIf Val(payCode) >= 15 And Val(payCode) <= 20 Then
+                ws.Cells(i, "K").Value = "Employee"
+            Else
+                ws.Cells(i, "K").Value = ""
+            End If
+        End If
+    Next i
+
+    MsgBox "Data cleaned and formatted successfully!", vbInformation
+
+End Sub
+
+' ==== Function to remove numbers from name ====
+Function RemoveNumbersFromName(text As String) As String
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    regex.Pattern = "[0-9]{4,}"
+    regex.Global = True
+    RemoveNumbersFromName = Trim(regex.Replace(text, ""))
+End Function
+
+' ==== Function to detect female names ====
+Function IsFemaleName(name As String) As Boolean
+    Dim femaleNames As Variant
+    femaleNames = Array("BEAUTI", "RUMA", "JHARNA", "SANJIDA", "AKTER", "RANI")
+
+    Dim part As Variant
+    For Each part In Split(UCase(name), " ")
+        If Not IsError(Application.Match(part, femaleNames, 0)) Then
+            IsFemaleName = True
+            Exit Function
+        End If
+    Next
+    IsFemaleName = False
+End Function
+
+' ==== Extract date in dd/mm/yyyy format ====
+Function ExtractDate(text As String) As String
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    regex.Pattern = "(\d{2}/\d{2}/\d{4})"
+    regex.Global = False
+
+    If regex.Test(text) Then
+        ExtractDate = regex.Execute(text)(0).SubMatches(0)
+    Else
+        ExtractDate = ""
+    End If
+End Function
+
+Function ExtractMPOCode(text As String) As String
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    
+    ' all type space , :, -, , etc remove and take A/B/V + 10-digit get
+    regex.Pattern = "([ABV])\s*[-:]?\s*(\d{10})"
+    regex.IgnoreCase = True
+    regex.Global = False
+
+    If regex.Test(text) Then
+        Dim matches
+        Set matches = regex.Execute(text)
+        ExtractMPOCode = UCase(matches(0).SubMatches(0)) & matches(0).SubMatches(1)
+    Else
+        ExtractMPOCode = ""
+    End If
+End Function
+
+
+' ==== Extract Bank Account Number from H ====
+Function ExtractAccountNumber(text As String) As String
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    regex.Pattern = "(\d{10,})"
+    regex.Global = False
+
+    If regex.Test(text) Then
+        ExtractAccountNumber = regex.Execute(text)(0).SubMatches(0)
+    Else
+        ExtractAccountNumber = ""
+    End If
+End Function
+
+' ==== Extract Pay-code from Column I ====
+
+Function ExtractPayCode(text As String) As String
+    Dim regex As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    
+    ' take only positive number, remove negitive sign
+    regex.Pattern = "-?(\d+)"
+    regex.Global = False
+
+    If regex.Test(text) Then
+        ExtractPayCode = regex.Execute(text)(0).SubMatches(0) ' only number
+    Else
+        ExtractPayCode = ""
+    End If
+End Function
