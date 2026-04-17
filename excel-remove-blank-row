@@ -1,0 +1,9 @@
+Sub DeleteBlankRows_Safe()
+
+    On Error Resume Next
+    
+    Range("C1:C40000").SpecialCells(xlCellTypeBlanks).EntireRow.Delete
+    
+    On Error GoTo 0
+
+End Sub
