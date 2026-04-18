@@ -1,0 +1,19 @@
+Sub DeleteStopRows()
+
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    
+    Set ws = ActiveSheet
+    
+    ' L কলামের last row বের করা
+    lastRow = ws.Cells(ws.Rows.Count, "L").End(xlUp).Row
+    
+    ' নিচ থেকে loop (row delete safe)
+    For i = lastRow To 1 Step -1
+        If InStr(1, ws.Cells(i, "L").Value, "STOP", vbTextCompare) > 0 Then
+            ws.Rows(i).Delete
+        End If
+    Next i
+
+End Sub
