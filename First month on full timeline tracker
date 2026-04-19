@@ -1,0 +1,63 @@
+Sub FindTrueFirstMonthAcrossTimeline()
+
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    
+    Dim idxCols As Variant
+    Dim monthCols As Variant
+    Dim i As Long, r As Long, lastRow As Long
+    Dim dict As Object
+    Dim idx As String
+    Dim outputRow As Long
+    Dim key As Variant
+    
+    Set dict = CreateObject("Scripting.Dictionary")
+    dict.CompareMode = vbTextCompare
+    
+    ' Index columns and matching month columns
+    idxCols = Array("A", "D", "G", "J", "M", "P", "S", "V", "Y", "AB")
+    monthCols = Array("B", "E", "H", "K", "N", "Q", "T", "W", "Z", "AC")
+    
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+    
+    ' Output clear
+    ws.Range("AE1:AG" & ws.Rows.Count).ClearContents
+    ws.Range("AE1:AG" & ws.Rows.Count).Interior.Pattern = xlNone
+    
+    ' Header
+    ws.Range("AE1").Value = "INDEX NO"
+    ws.Range("AF1").Value = "FIRST MONTH"
+    ws.Range("AG1").Value = "FIRST COLUMN"
+    
+    ' Left to right scan
+    For i = LBound(idxCols) To UBound(idxCols)
+        lastRow = ws.Cells(ws.Rows.Count, idxCols(i)).End(xlUp).Row
+        
+        For r = 2 To lastRow
+            idx = Trim(CStr(ws.Cells(r, idxCols(i)).Value))
+            
+            If idx <> "" Then
+                ' প্রথমবার পাওয়া গেলে only তখনই save হবে
+                If Not dict.exists(idx) Then
+                    dict.Add idx, Array(ws.Cells(r, monthCols(i)).Value, idxCols(i))
+                End If
+            End If
+        Next r
+    Next i
+    
+    ' Output write
+    outputRow = 2
+    For Each key In dict.Keys
+        ws.Cells(outputRow, "AE").Value = key
+        ws.Cells(outputRow, "AF").Value = dict(key)(0)
+        ws.Cells(outputRow, "AG").Value = dict(key)(1)
+        outputRow = outputRow + 1
+    Next key
+    
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+    
+    MsgBox "First month tracking completed. দেখুন AE:AG কলামে।", vbInformation
+
+End Sub
