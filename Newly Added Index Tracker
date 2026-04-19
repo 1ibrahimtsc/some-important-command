@@ -1,0 +1,78 @@
+Sub FindNewlyAddedIndexesAcrossTimeline()
+
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    
+    Dim idxCols As Variant
+    Dim monthCols As Variant
+    Dim i As Long, r As Long, lastRow As Long
+    Dim seenDict As Object
+    Dim newDict As Object
+    Dim idx As String
+    Dim outputRow As Long
+    Dim key As Variant
+    
+    Set seenDict = CreateObject("Scripting.Dictionary")
+    seenDict.CompareMode = vbTextCompare
+    
+    Set newDict = CreateObject("Scripting.Dictionary")
+    newDict.CompareMode = vbTextCompare
+    
+    idxCols = Array("A", "D", "G", "J", "M", "P", "S", "V", "Y", "AB")
+    monthCols = Array("B", "E", "H", "K", "N", "Q", "T", "W", "Z", "AC")
+    
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+    
+    ' Output clear
+    ws.Range("AI1:AK" & ws.Rows.Count).ClearContents
+    ws.Range("AI1:AK" & ws.Rows.Count).Interior.Pattern = xlNone
+    
+    ws.Range("AI1").Value = "NEW INDEX NO"
+    ws.Range("AJ1").Value = "FIRST ADDED MONTH"
+    ws.Range("AK1").Value = "FIRST ADDED COLUMN"
+    
+    ' First month baseline হিসেবে mark হবে, output-এ যাবে না
+    lastRow = ws.Cells(ws.Rows.Count, idxCols(0)).End(xlUp).Row
+    For r = 2 To lastRow
+        idx = Trim(CStr(ws.Cells(r, idxCols(0)).Value))
+        If idx <> "" Then
+            If Not seenDict.exists(idx) Then
+                seenDict.Add idx, True
+            End If
+        End If
+    Next r
+    
+    ' 2nd month থেকে পরে নতুন add হওয়া index বের করবে
+    For i = 1 To UBound(idxCols)
+        lastRow = ws.Cells(ws.Rows.Count, idxCols(i)).End(xlUp).Row
+        
+        For r = 2 To lastRow
+            idx = Trim(CStr(ws.Cells(r, idxCols(i)).Value))
+            
+            If idx <> "" Then
+                If Not seenDict.exists(idx) Then
+                    seenDict.Add idx, True
+                    
+                    If Not newDict.exists(idx) Then
+                        newDict.Add idx, Array(ws.Cells(r, monthCols(i)).Value, idxCols(i))
+                    End If
+                End If
+            End If
+        Next r
+    Next i
+    
+    outputRow = 2
+    For Each key In newDict.Keys
+        ws.Cells(outputRow, "AI").Value = key
+        ws.Cells(outputRow, "AJ").Value = newDict(key)(0)
+        ws.Cells(outputRow, "AK").Value = newDict(key)(1)
+        outputRow = outputRow + 1
+    Next key
+    
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+    
+    MsgBox "Newly added index tracking completed. দেখুন AI:AK কলামে।", vbInformation
+
+End Sub
