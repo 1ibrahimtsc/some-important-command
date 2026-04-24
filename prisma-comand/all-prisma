@@ -1,0 +1,8 @@
+model পরিবর্তন করার পর 
+npx prisma migrate dev --name add_discount_fields  
+npm run build           
+                          এতে migration file তৈরী হবে। add_discount_fields এটা প্রয়োজন অনুযায়ী পরিবর্তন হবে।
+                          এতে migration file DB তে apply হয়। ("build": "prisma generate && prisma migrate deploy && tsc",) 
+                           prisma generate কমান্ড Prisma client update করে (DB change না)
+                           prisma migrate deploy ⭐ 👉 এটাই DB change করে, নতুন column add, table update, migration apply
+                           tsc 👉 TypeScript build (DB এর সাথে সম্পর্ক নেই)
