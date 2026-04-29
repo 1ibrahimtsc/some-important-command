@@ -1,0 +1,14 @@
+Sub DeleteBlankRows_Better()
+
+    Dim i As Long
+    Dim lastRow As Long
+    
+    lastRow = Cells(Rows.Count, "A").End(xlUp).Row
+
+    For i = lastRow To 1 Step -1
+        If Trim(Cells(i, "A").Value) = "" Then
+            Rows(i).Delete
+        End If
+    Next i
+
+End Sub
