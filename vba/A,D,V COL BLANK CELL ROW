@@ -1,0 +1,26 @@
+Sub DeleteBlankRows_A_D_V()
+
+    Dim i As Long
+    Dim lastRow As Long
+    
+    ' A, D, V এর মধ্যে সবচেয়ে নিচের used row বের করা
+    lastRow = Application.WorksheetFunction.Max( _
+        Cells(Rows.Count, "A").End(xlUp).Row, _
+        Cells(Rows.Count, "D").End(xlUp).Row, _
+        Cells(Rows.Count, "V").End(xlUp).Row _
+    )
+
+    ' নিচ থেকে উপরে row delete করা
+    For i = lastRow To 1 Step -1
+        
+        If Trim(CStr(Cells(i, "A").Value)) = "" _
+        Or Trim(CStr(Cells(i, "D").Value)) = "" _
+        Or Trim(CStr(Cells(i, "V").Value)) = "" Then
+            
+            Rows(i).Delete
+            
+        End If
+        
+    Next i
+
+End Sub
